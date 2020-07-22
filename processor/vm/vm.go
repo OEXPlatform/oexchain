@@ -76,6 +76,10 @@ type Context struct {
 	ForkID      uint64      // Provides information for FORKID
 	Time        *big.Int    // Provides information for TIME
 	Difficulty  *big.Int    // Provides information for DIFFICULTY
+
+	// Asset information
+	ExAssetID1 uint64
+	ExValue1   *big.Int
 }
 
 type FounderGas struct {

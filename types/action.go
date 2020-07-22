@@ -40,6 +40,8 @@ const (
 	CallContract ActionType = iota
 	// CreateContract repesents the create contract action.
 	CreateContract
+	// MultiAssetCall represents muticall contract with multi assets action.
+	MultiAssetCall
 )
 
 const (
