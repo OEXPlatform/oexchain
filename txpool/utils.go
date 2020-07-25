@@ -81,6 +81,8 @@ func IntrinsicGas(accountDB *accountmanager.AccountManager, action *types.Action
 		gas += gasTable.ActionGasIssueAsset
 	} else if action.Type() == types.CallContract {
 		gas += gasTable.ActionGasCallContract
+	} else if action.Type() == types.MultiAssetCall {
+		gas += gasTable.ActionGasCallContract
 	} else {
 		gas += gasTable.ActionGas
 	}

@@ -155,15 +155,18 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 			vmerr = err
 			break
 		}
-		if len(acct.Assets) == 1 {
-			st.evm.Context.ExAssetID1 = acct.Assets[0].AssetID
-			st.evm.Context.ExValue1 = acct.Assets[0].Amount
-		}
+		assetTransferFlag := true
 		for _, asset := range acct.Assets {
 			if err = evm.AccountDB.TransferAsset(st.action.Sender(), st.action.Recipient(), asset.AssetID, asset.Amount); err != nil {
 				vmerr = err
+				assetTransferFlag = false
 				break
 			}
+			st.evm.Context.ExAssetIDs = append(st.evm.Context.ExAssetIDs, asset.AssetID)
+			st.evm.Context.ExValues = append(st.evm.Context.ExValues, asset.Amount)
+		}
+		if !assetTransferFlag {
+			break
 		}
 		action := types.NewAction(st.action.Type(), st.action.Sender(), st.action.Recipient(), st.action.Nonce(), st.action.AssetID(), st.action.Gas(), st.action.Value(), acct.Payload, st.action.Remark())
 		ret, st.gas, vmerr = evm.Call(sender, action, st.gas)

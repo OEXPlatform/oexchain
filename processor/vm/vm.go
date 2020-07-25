@@ -78,8 +78,8 @@ type Context struct {
 	Difficulty  *big.Int    // Provides information for DIFFICULTY
 
 	// Asset information
-	ExAssetID1 uint64
-	ExValue1   *big.Int
+	ExAssetIDs []uint64
+	ExValues   []*big.Int
 }
 
 type FounderGas struct {
