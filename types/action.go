@@ -223,6 +223,7 @@ func (a *Action) Check(fid uint64, conf *params.ChainConfig) error {
 			return fmt.Errorf("Receipt should is %v", a.data.From)
 		}
 	case CallContract:
+	case MultiAssetCall:
 	//account
 	case CreateAccount:
 		fallthrough
@@ -286,6 +287,8 @@ func (a *Action) Check(fid uint64, conf *params.ChainConfig) error {
 	case CreateContract:
 		fallthrough
 	case CallContract:
+		fallthrough
+	case MultiAssetCall:
 		fallthrough
 	case Transfer:
 		fallthrough
