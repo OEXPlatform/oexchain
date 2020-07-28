@@ -39,9 +39,9 @@ import (
 
 var (
 	privateKey, _  = crypto.HexToECDSA("289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232032")
-	founderAccount = common.Name("oex.founder")
-	accAccount     = common.Name("oex.account")
-	feeAccount     = common.Name("oex.fee")
+	founderAccount = common.Name("oexchain.founder")
+	accAccount     = common.Name("oexchain.account")
+	feeAccount     = common.Name("oexchain.fee")
 
 	normal_a   = common.Name("normalaccta")
 	normal_b   = common.Name("normalacctb")
@@ -272,10 +272,10 @@ func issueAssetForA() {
 	sendTransferTx(types.CallContract, normal_a, contract_a, aNonce, assetID, big.NewInt(0), input, []*types.KeyPair{key_0})
 }
 
-func transferAssetByContractFromA2B() {
+func transferAssetByContractToA() {
 	jww.INFO.Println("transferAssetByContractFromA2B ")
 
-	input, err := formTransferAssetInput(multiAssetAbi, common.BigToAddress(big.NewInt(4099)), big.NewInt(1))
+	input, err := formTransferAssetInput(multiAssetAbi, common.BigToAddress(big.NewInt(4103)), big.NewInt(1))
 	if err != nil {
 		jww.INFO.Println("transferAssetByContractFromA2B formTransferAssetInput error ... ", err)
 		return
@@ -289,7 +289,7 @@ func transferAssetByContractFromA2B() {
 func transferMultiAssetByContractFromA2B() {
 	jww.INFO.Println("transferMultiAssetByContractFromA2B ")
 
-	input, err := formTransferAssetInput(multiAssetAbi, common.BigToAddress(big.NewInt(4099)), big.NewInt(1))
+	input, err := formTransferAssetInput(multiAssetAbi, common.BigToAddress(big.NewInt(4103)), big.NewInt(1))
 	if err != nil {
 		jww.INFO.Println("transferAssetByContractFromA2B formTransferAssetInput error ... ", err)
 		return
@@ -365,7 +365,7 @@ func main() {
 	time.Sleep(10 * time.Second)
 
 	issueAssetForA()
-	transferAssetByContractFromA2B()
+	transferAssetByContractToA()
 	transferMultiAssetByContractFromA2B()
 }
 
