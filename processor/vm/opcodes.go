@@ -98,6 +98,8 @@ const (
 	DIFFICULTY
 	GASLIMIT
 	CALLASSETID
+	EXTASSETID1
+	EXTVALUE1
 )
 
 const (
@@ -307,6 +309,8 @@ var opCodeToString = map[OpCode]string{
 	DIFFICULTY:  "DIFFICULTY",
 	GASLIMIT:    "GASLIMIT",
 	CALLASSETID: "CALLASSETID",
+	EXTASSETID1: "EXTASSETID1",
+	EXTVALUE1:   "EXTVALUE1",
 
 	// 0x50 range - 'storage' and execution
 	POP: "POP",
@@ -504,6 +508,8 @@ var stringToOp = map[string]OpCode{
 	"DIFFICULTY":     DIFFICULTY,
 	"GASLIMIT":       GASLIMIT,
 	"CALLASSETID":    CALLASSETID,
+	"EXTASSETID1":    EXTASSETID1,
+	"EXTVALUE1":      EXTVALUE1,
 	"POP":            POP,
 	"MLOAD":          MLOAD,
 	"MSTORE":         MSTORE,

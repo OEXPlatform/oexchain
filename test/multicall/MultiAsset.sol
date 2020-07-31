@@ -11,6 +11,7 @@ contract MultiAsset {
         addasset(assetId,to,value);
     }
     function transAsset(address to, uint256 value) public payable {
+	    to.transfer(msg.extassetid1, msg.extvalue1);
         to.transfer(assetID, value);
     }
     function changeOwner(address newOwner, uint256 assetId) public {
