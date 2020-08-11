@@ -17,7 +17,6 @@
 package dpos
 
 import (
-	"encoding/json"
 	"fmt"
 	"math"
 	"math/big"
@@ -843,7 +842,7 @@ func (sys *System) updateState(gstate *GlobalState, prod *CandidateInfo) error {
 		if err != nil {
 			return err
 		}
-		bts, _ := json.Marshal(tstate)
+		//bts, _ := json.Marshal(tstate)
 		//log.Info("dpos prestart", "before", string(bts), "prod", prod.Name)
 		if prod.invalid() {
 			tstate.TotalQuantity = new(big.Int).Sub(tstate.TotalQuantity, prod.TotalQuantity)
@@ -860,7 +859,7 @@ func (sys *System) updateState(gstate *GlobalState, prod *CandidateInfo) error {
 				tstate.TotalQuantity = new(big.Int).Add(tstate.TotalQuantity, new(big.Int).Sub(prod.TotalQuantity, tprod.TotalQuantity))
 			}
 		}
-		bts, _ = json.Marshal(tstate)
+		//bts, _ = json.Marshal(tstate)
 		//log.Info("dpos prestart", "after", string(bts), "prod", prod.Name)
 		if err := insert(tstate, prod); err != nil {
 			return err
