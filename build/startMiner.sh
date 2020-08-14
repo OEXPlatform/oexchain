@@ -32,7 +32,7 @@ function startOneMinerNode ()
 	#mkdir ./data/$minerName
 	nohup ./oex --genesis=../testnet.json --datadir=./data/$minerName --contractlog --p2p_listenaddr :$p2pPort --http_port $httpPort --ws_port $wsPort --http_modules=fee,miner,dpos,account,txpool,oex >> logs/$minerName.log &
 	#sleep 5
-	#./oex miner -i ./data/$minerName/oex.ipc setcoinbase "$minerName" keys/minernodetestKey.txt
+	./oex miner start -i ./data/$minerName/oex.ipc
 }
 
 
