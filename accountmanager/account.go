@@ -124,6 +124,10 @@ func (a *Account) SetFounder(f common.Name) {
 	a.Founder = f
 }
 
+func (a *Account) SetDescription(desc string) {
+	a.Description = desc
+}
+
 //GetAccountID return account object id
 func (a *Account) GetAccountID() uint64 {
 	return a.AccountID
