@@ -1480,7 +1480,7 @@ func (am *AccountManager) process(accountManagerContext *types.AccountManagerCon
 			return nil, err
 		}
 
-		if err := am.UpdateAccount(action.Sender(), &acct); err != nil {
+		if err := am.UpdateAccountDesc(action.Sender(), &acct); err != nil {
 			return nil, err
 		}
 	case types.UpdateAccountAuthor:
