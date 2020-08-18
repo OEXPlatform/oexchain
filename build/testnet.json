@@ -2,8 +2,8 @@
 	"config": {
 		"bootnodes": ["fnode://44b8a7cc0ef71657750fdd6108d0b6b9f5f9f2d6a72329ae13766355cd9a60d9d8ade3bfe440885d6fab1d21fd66c1e5243d4802855f2c79c0123ffef35a44fd@8.210.221.49:9090"],
 		"chainId": 100,
-		"chainName": "oex",
-		"chainUrl": "https://oex.com",
+		"chainName": "oexchain",
+		"chainUrl": "https://oexchain.io",
 		"accountParams": {
 			"level": 3,
 			"alllength":31,
