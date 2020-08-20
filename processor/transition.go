@@ -156,20 +156,44 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 			break
 		}
 		assetTransferFlag := true
+		successCount := 0   // 统计已经转账成功的交易
 		for _, asset := range acct.Assets {
 			if err = evm.AccountDB.TransferAsset(st.action.Sender(), st.action.Recipient(), asset.AssetID, asset.Amount); err != nil {
 				vmerr = err
 				assetTransferFlag = false
 				break
 			}
+			successCount++
 			st.evm.Context.ExAssetIDs = append(st.evm.Context.ExAssetIDs, asset.AssetID)
 			st.evm.Context.ExValues = append(st.evm.Context.ExValues, asset.Amount)
 		}
 		if !assetTransferFlag {
+			// 对已经成功转账的交易进行反向转账
+			for _, asset := range acct.Assets {
+				successCount--
+				if successCount < 0 {
+					break
+				}
+				if err = evm.AccountDB.TransferAsset(st.action.Recipient(), st.action.Sender(), asset.AssetID, asset.Amount); err != nil {
+					vmerr = err
+					assetTransferFlag = false
+					break
+				}
+			}
 			break
 		}
 		action := types.NewAction(st.action.Type(), st.action.Sender(), st.action.Recipient(), st.action.Nonce(), st.action.AssetID(), st.action.Gas(), st.action.Value(), acct.Payload, st.action.Remark())
 		ret, st.gas, vmerr = evm.Call(sender, action, st.gas)
+		// 因合约执行失败，将之前的转账全部反向操作一遍
+		if vmerr != nil {
+			for _, asset := range acct.Assets {
+				if err = evm.AccountDB.TransferAsset(st.action.Recipient(), st.action.Sender(), asset.AssetID, asset.Amount); err != nil {
+					vmerr = err
+					assetTransferFlag = false
+					break
+				}
+			}
+		}
 	case actionType == types.Transfer:
 		var fromExtra common.Name
 		if evm.ForkID >= params.ForkID4 {
