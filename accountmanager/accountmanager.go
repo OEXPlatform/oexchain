@@ -60,8 +60,12 @@ type CreateAccountAction struct {
 	Description string        `json:"description,omitempty"`
 }
 
-type UpdataAccountAction struct {
+type UpdateAccountAction struct {
 	Founder common.Name `json:"founder,omitempty"`
+}
+
+type UpdateAccountDescAction struct {
+	Description string `json:"description,omitempty"`
 }
 
 type AuthorAction struct {
@@ -393,7 +397,7 @@ func (am *AccountManager) CreateAccount(fromName common.Name, accountName common
 // }
 
 //UpdateAccount update the pubkey of the account
-func (am *AccountManager) UpdateAccount(accountName common.Name, accountAction *UpdataAccountAction) error {
+func (am *AccountManager) UpdateAccount(accountName common.Name, accountAction *UpdateAccountAction) error {
 	acct, err := am.GetAccountByName(accountName)
 	if acct == nil {
 		return ErrAccountNotExist
@@ -414,6 +418,21 @@ func (am *AccountManager) UpdateAccount(accountName common.Name, accountAction *
 	}
 
 	acct.SetFounder(accountAction.Founder)
+	return am.SetAccount(acct)
+}
+
+
+//UpdateAccountDesc update the description of the account
+func (am *AccountManager) UpdateAccountDesc(accountName common.Name, accountAction *UpdateAccountDescAction) error {
+	acct, err := am.GetAccountByName(accountName)
+	if acct == nil {
+		return ErrAccountNotExist
+	}
+	if err != nil {
+		return err
+	}
+
+	acct.SetDescription(accountAction.Description)
 	return am.SetAccount(acct)
 }
 
@@ -1445,13 +1464,23 @@ func (am *AccountManager) process(accountManagerContext *types.AccountManagerCon
 			internalActions = append(internalActions, internalAction)
 		}
 	case types.UpdateAccount:
-		var acct UpdataAccountAction
+		var acct UpdateAccountAction
 		err := rlp.DecodeBytes(action.Data(), &acct)
 		if err != nil {
 			return nil, err
 		}
 
 		if err := am.UpdateAccount(action.Sender(), &acct); err != nil {
+			return nil, err
+		}
+	case types.UpdateAccountDesc:
+		var acct UpdateAccountDescAction
+		err := rlp.DecodeBytes(action.Data(), &acct)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := am.UpdateAccountDesc(action.Sender(), &acct); err != nil {
 			return nil, err
 		}
 	case types.UpdateAccountAuthor:

@@ -51,6 +51,8 @@ const (
 	DeleteAccount
 	// UpdateAccountAuthor represents the update account author.
 	UpdateAccountAuthor
+	// UpdateAccountDesc update account description.
+	UpdateAccountDesc
 )
 
 const (
