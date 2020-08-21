@@ -284,6 +284,7 @@ func (worker *Worker) commitNewWork(timestamp int64, parent *types.Header, quit 
 		Extra:      worker.extra,
 		Time:       big.NewInt(timestamp),
 		Difficulty: worker.CalcDifficulty(worker.IConsensus, uint64(timestamp), parent),
+		Reward:     big.NewInt(0),
 	}
 	header.Coinbase = common.StrToName(worker.coinbase)
 	header.ProposedIrreversible = dpos.CalcProposedIrreversible(worker, parent, false)

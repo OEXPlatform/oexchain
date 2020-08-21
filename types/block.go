@@ -40,6 +40,7 @@ type ForkID struct {
 type Header struct {
 	ParentHash           common.Hash
 	Coinbase             common.Name
+	Reward               *big.Int
 	ProposedIrreversible uint64
 	Root                 common.Hash
 	TxsRoot              common.Hash
@@ -139,6 +140,9 @@ func (b *Block) NumberU64() uint64 { return b.Head.Number.Uint64() }
 
 // Coinbase returns the block's Coinbase.
 func (b *Block) Coinbase() common.Name { return b.Head.Coinbase }
+
+// Reward returns the block's coinbase Reward.
+func (b *Block) Reward() *big.Int { return new(big.Int).Set(b.Head.Reward) }
 
 // Root returns the block's Root.
 func (b *Block) Root() common.Hash { return b.Head.Root }
@@ -246,6 +250,9 @@ func (b *Block) Check() error {
 // modifying a header variable.
 func CopyHeader(h *Header) *Header {
 	cpy := *h
+	if cpy.Reward = new(big.Int); h.Reward != nil {
+		cpy.Reward.Set(h.Reward)
+	}
 	if cpy.Time = new(big.Int); h.Time != nil {
 		cpy.Time.Set(h.Time)
 	}

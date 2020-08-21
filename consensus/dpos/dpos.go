@@ -362,6 +362,7 @@ func (dpos *Dpos) prepare(chain consensus.IChainReader, header *types.Header, tx
 			//log.Info("block reward", "epoch", epoch, "half", halfCnt, "epoch reward", epochReward, "offset", offset, "reward", reward, "height", header.Number)
 			candidates[offset].Reward = new(big.Int).Add(candidates[offset].Reward, reward)
 		}
+		header.Reward.Set(reward)
 	}
 	candidates[offset].ActualCounter++
 	for _, candidate := range candidates {

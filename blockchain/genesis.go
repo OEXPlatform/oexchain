@@ -448,6 +448,7 @@ func (g *Genesis) ToBlock(db fdb.Database) (*types.Block, []*types.Receipt, erro
 		GasUsed:    0,
 		Difficulty: g.Difficulty,
 		Coinbase:   common.StrToName(g.Config.ChainName),
+		Reward:     big.NewInt(0),
 		Root:       root,
 	}
 
