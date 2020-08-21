@@ -421,7 +421,6 @@ func (am *AccountManager) UpdateAccount(accountName common.Name, accountAction *
 	return am.SetAccount(acct)
 }
 
-
 //UpdateAccountDesc update the description of the account
 func (am *AccountManager) UpdateAccountDesc(accountName common.Name, accountAction *UpdateAccountDescAction) error {
 	acct, err := am.GetAccountByName(accountName)
