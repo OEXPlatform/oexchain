@@ -90,6 +90,7 @@ func RPCMarshalBlockWithPayer(chainID *big.Int, b *types.Block, inclTx bool, ful
 		"logsBloom":            head.Bloom,
 		"stateRoot":            head.Root,
 		"miner":                head.Coinbase,
+		"reward":               head.Reward,
 		"difficulty":           head.Difficulty,
 		"extraData":            hexutil.Bytes(head.Extra),
 		"size":                 b.Size(),
