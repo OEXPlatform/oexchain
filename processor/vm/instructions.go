@@ -1804,6 +1804,30 @@ func makeLog(size int) executionFunc {
 	}
 }
 
+// make extAssetid instruction function
+func makeExtAssetID(index uint64) executionFunc {
+	return func(pc *uint64, evm *EVM, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
+		if len(evm.ExAssetIDs) < int(index) {
+			stack.push(evm.interpreter.intPool.get().SetUint64(0))
+		} else {
+			stack.push(evm.interpreter.intPool.get().SetUint64(evm.ExAssetIDs[index-1]))
+		}
+		return nil, nil
+	}
+}
+
+// make extValue instruction function
+func makeExtValue(index uint64) executionFunc {
+	return func(pc *uint64, evm *EVM, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
+		if len(evm.ExValues) < int(index) {
+			stack.push(evm.interpreter.intPool.get().Set(big.NewInt(0)))
+		} else {
+			stack.push(evm.interpreter.intPool.get().Set(evm.ExValues[index-1]))
+		}
+		return nil, nil
+	}
+}
+
 // make push instruction function
 func makePush(size uint64, pushByteSize int) executionFunc {
 	return func(pc *uint64, evm *EVM, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
