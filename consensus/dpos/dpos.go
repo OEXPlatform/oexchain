@@ -206,14 +206,14 @@ func (dpos *Dpos) prepare(chain consensus.IChainReader, header *types.Header, tx
 	parent := chain.GetHeaderByHash(header.ParentHash)
 	pepoch := dpos.config.epoch(parent.Time.Uint64())
 	epoch := dpos.config.epoch(header.Time.Uint64())
-	epochReward := new(big.Int).SetBytes(dpos.config.RewardEpoch.Bytes())
+	roundReward := new(big.Int).SetBytes(dpos.config.RoundReward.Bytes())
 	halfCnt := epoch / dpos.config.HalfEpoch
 	if halfCnt >= 0 {
 		half := math.Exp2(float64(halfCnt))
-		epochReward = new(big.Int).Div(epochReward, big.NewInt(int64(half)))
+		roundReward = new(big.Int).Div(roundReward, big.NewInt(int64(half)))
 	}
 	if epoch != pepoch {
-		log.Info("block reward", "epoch", epoch, "half", halfCnt, "epoch reward", epochReward)
+		log.Info("block reward", "epoch", epoch, "half", halfCnt, "round reward", roundReward)
 	}
 
 	gstate, err := sys.GetState(pepoch)
@@ -357,7 +357,7 @@ func (dpos *Dpos) prepare(chain consensus.IChainReader, header *types.Header, tx
 	}
 	offset := sys.config.getoffset(header.Time.Uint64())
 	if pstate.Dpos {
-		reward := sys.config.weightrward(offset, epochReward)
+		reward := sys.config.weightrward(offset, roundReward)
 		if _, err := sys.IncAsset2Acct(dpos.config.SystemName, header.Coinbase.String(), reward, header.CurForkID()); err == nil {
 			//log.Info("block reward", "epoch", epoch, "half", halfCnt, "epoch reward", epochReward, "offset", offset, "reward", reward, "height", header.Number)
 			candidates[offset].Reward = new(big.Int).Add(candidates[offset].Reward, reward)

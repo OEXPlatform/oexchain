@@ -101,9 +101,9 @@ func dposConfig(cfg *params.ChainConfig) *dpos.Config {
 		Decimals:                      cfg.SysTokenDecimals,
 		AssetID:                       cfg.SysTokenID,
 		ReferenceTime:                 cfg.ReferenceTime,
-		Pow:                           cfg.DposCfg.RewardPow,
+		RoundPow:                      cfg.DposCfg.RoundPow,
 		HalfEpoch:                     cfg.DposCfg.HalfEpoch,
-		RewardEpoch:                   cfg.DposCfg.RewardEpoch,
+		RoundReward:                   cfg.DposCfg.RoundReward,
 	}
 }
 

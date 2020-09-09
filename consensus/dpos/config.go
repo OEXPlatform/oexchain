@@ -43,9 +43,9 @@ var DefaultConfig = &Config{
 	SystemURL:                     "www.oexproject.com",
 	ExtraBlockReward:              big.NewInt(1),
 	BlockReward:                   big.NewInt(5),
-	Pow:                           []uint64{1, 1, 1},
+	RoundPow:                      []uint64{1, 1, 1},
 	HalfEpoch:                     10,
-	RewardEpoch:                   big.NewInt(1000000000),
+	RoundReward:                   big.NewInt(1000000000),
 	Decimals:                      18,
 	AssetID:                       1,
 	ReferenceTime:                 1555776000000 * uint64(time.Millisecond), // 2019-04-21 00:00:00
@@ -73,8 +73,8 @@ type Config struct {
 	ExtraBlockReward              *big.Int `json:"extraBlockReward"`
 	BlockReward                   *big.Int `json:"blockReward"`
 	HalfEpoch                     uint64   `json:"halfEpoch"`
-	RewardEpoch                   *big.Int `json:"rewardEpoch"`
-	Pow                           []uint64 `json:"pow"`
+	RoundReward                   *big.Int `json:"roundEpoch"`
+	RoundPow                      []uint64 `json:"roundpow"`
 	Decimals                      uint64   `json:"decimals"`
 	AssetID                       uint64   `json:"assetID"`
 	ReferenceTime                 uint64   `json:"referenceTime"`
@@ -93,15 +93,16 @@ func (cfg *Config) totalpows() uint64 {
 		return powsum.(uint64)
 	}
 	powsum := uint64(0)
-	for i := 0; i < len(cfg.Pow); i++ {
-		powsum = powsum + cfg.Pow[i]
+	for i := 0; i < len(cfg.RoundPow); i++ {
+		powsum = powsum + cfg.RoundPow[i]
 	}
+	powsum *= cfg.BlockFrequency
 	cfg.powSum.Store(powsum)
 	return powsum
 }
 
 func (cfg *Config) weightrward(offset uint64, reward *big.Int) *big.Int {
-	pow := cfg.Pow[offset]
+	pow := cfg.RoundPow[offset]
 	weight := pow * 1000 / cfg.totalpows()
 	return new(big.Int).Div(new(big.Int).Mul(reward, big.NewInt(int64(weight))), big.NewInt(1000))
 }
@@ -208,7 +209,7 @@ func (cfg *Config) IsValid() error {
 	if minEpochInterval := 2 * cfg.minBlockCnt() * cfg.blockInterval(); cfg.epochInterval() < minEpochInterval {
 		return fmt.Errorf("epoch interval %v invalid (min epoch interval %v)", cfg.epochInterval(), minEpochInterval)
 	}
-	if uint64(len(cfg.Pow)) != cfg.BackupScheduleSize+cfg.CandidateScheduleSize {
+	if uint64(len(cfg.RoundPow)) != cfg.BackupScheduleSize+cfg.CandidateScheduleSize {
 		return fmt.Errorf("pow not mismatch")
 	}
 	return nil

@@ -79,9 +79,9 @@ type DposConfig struct {
 	FreezeEpochSize               uint64   `json:"freezeEpochSize"`
 	ExtraBlockReward              *big.Int `json:"extraBlockReward"`
 	BlockReward                   *big.Int `json:"blockReward"`
-	RewardEpoch                   *big.Int `json:"epochReward"`
 	HalfEpoch                     uint64   `json:"halfEpoch"`
-	RewardPow                     []uint64 `json:"pow"`
+	RoundReward                   *big.Int `json:"roundReward"`
+	RoundPow                      []uint64 `json:"roundPow"`
 }
 
 var DefaultChainconfig = &ChainConfig{
@@ -129,9 +129,9 @@ var DefaultChainconfig = &ChainConfig{
 		FreezeEpochSize:               3,
 		ExtraBlockReward:              big.NewInt(1),
 		BlockReward:                   big.NewInt(5),
-		RewardPow:                     []uint64{1, 1, 1},
 		HalfEpoch:                     10,
-		RewardEpoch:                   big.NewInt(10 * 3 * 6 * 10000),
+		RoundReward:                   big.NewInt(10 * 3 * 6 * 10000),
+		RoundPow:                      []uint64{1, 1, 1},
 	},
 	SnapshotInterval: 180000,
 	SysName:          "oexchain.founder",
