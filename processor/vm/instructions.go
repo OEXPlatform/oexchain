@@ -766,6 +766,26 @@ func opCallAssetId(pc *uint64, evm *EVM, contract *Contract, memory *Memory, sta
 	return nil, nil
 }
 
+func opExtAssetId1(pc *uint64, evm *EVM, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
+	fmt.Println("extassetids ", evm.ExAssetIDs)
+	if len(evm.ExAssetIDs) < 1 {
+		stack.push(evm.interpreter.intPool.get().SetUint64(0))
+	} else {
+		stack.push(evm.interpreter.intPool.get().SetUint64(evm.ExAssetIDs[0]))
+	}
+	return nil, nil
+}
+
+func opExtValue1(pc *uint64, evm *EVM, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
+	fmt.Println("extvalues ", evm.ExValues)
+	if len(evm.ExValues) < 1 {
+		stack.push(evm.interpreter.intPool.get().Set(big.NewInt(0)))
+	} else {
+		stack.push(evm.interpreter.intPool.get().Set(evm.ExValues[0]))
+	}
+	return nil, nil
+}
+
 func opPop(pc *uint64, evm *EVM, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
 	evm.interpreter.intPool.put(stack.pop())
 	return nil, nil
@@ -1780,6 +1800,30 @@ func makeLog(size int) executionFunc {
 		})
 
 		evm.interpreter.intPool.put(mStart, mSize)
+		return nil, nil
+	}
+}
+
+// make extAssetid instruction function
+func makeExtAssetID(index uint64) executionFunc {
+	return func(pc *uint64, evm *EVM, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
+		if len(evm.ExAssetIDs) < int(index) {
+			stack.push(evm.interpreter.intPool.get().SetUint64(0))
+		} else {
+			stack.push(evm.interpreter.intPool.get().SetUint64(evm.ExAssetIDs[index-1]))
+		}
+		return nil, nil
+	}
+}
+
+// make extValue instruction function
+func makeExtValue(index uint64) executionFunc {
+	return func(pc *uint64, evm *EVM, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
+		if len(evm.ExValues) < int(index) {
+			stack.push(evm.interpreter.intPool.get().Set(big.NewInt(0)))
+		} else {
+			stack.push(evm.interpreter.intPool.get().Set(evm.ExValues[index-1]))
+		}
 		return nil, nil
 	}
 }

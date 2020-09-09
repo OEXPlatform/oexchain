@@ -30,11 +30,22 @@ import (
 	"github.com/oexplatform/oexchain/processor/vm"
 	"github.com/oexplatform/oexchain/txpool"
 	"github.com/oexplatform/oexchain/types"
+	"github.com/oexplatform/oexchain/utils/rlp"
 )
 
 var (
 	errInsufficientBalanceForGas = errors.New("insufficient balance to pay for gas")
 )
+
+type SingleAsset struct {
+	AssetID uint64   `json:"assetID,omitempty"`
+	Amount  *big.Int `json:"amount,omitempty"`
+}
+
+type MultiAssetCallAction struct {
+	Assets  []*SingleAsset `json:"assets,omitempty"`
+	Payload []byte         `json:"payload,omitempty"`
+}
 
 type StateTransition struct {
 	engine      EngineContext
@@ -137,6 +148,41 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 		ret, st.gas, vmerr = evm.Create(sender, st.action, st.gas)
 	case actionType == types.CallContract:
 		ret, st.gas, vmerr = evm.Call(sender, st.action, st.gas)
+	case actionType == types.MultiAssetCall:
+		var acct MultiAssetCallAction
+		err := rlp.DecodeBytes(st.action.Data(), &acct)
+		if err != nil {
+			vmerr = err
+			break
+		}
+		assetTransferFlag := true
+		snapshot := evm.StateDB.Snapshot()
+		for _, asset := range acct.Assets {
+			if err = evm.AccountDB.TransferAsset(st.action.Sender(), st.action.Recipient(), asset.AssetID, asset.Amount); err != nil {
+				vmerr = err
+				assetTransferFlag = false
+				break
+			}
+			/// assets 中不允许有相同的asset id
+			for _, evmAssetID := range st.evm.Context.ExAssetIDs {
+				if evmAssetID == asset.AssetID {
+					vmerr = errors.New("duplicate asset ids")
+					assetTransferFlag = false
+					break
+				}
+			}
+			st.evm.Context.ExAssetIDs = append(st.evm.Context.ExAssetIDs, asset.AssetID)
+			st.evm.Context.ExValues = append(st.evm.Context.ExValues, asset.Amount)
+		}
+		if !assetTransferFlag {
+			evm.StateDB.RevertToSnapshot(snapshot)
+			break
+		}
+		action := types.NewAction(st.action.Type(), st.action.Sender(), st.action.Recipient(), st.action.Nonce(), st.action.AssetID(), st.action.Gas(), st.action.Value(), acct.Payload, st.action.Remark())
+		ret, st.gas, vmerr = evm.Call(sender, action, st.gas)
+		if vmerr != nil {
+			evm.StateDB.RevertToSnapshot(snapshot)
+		}
 	case actionType == types.Transfer:
 		var fromExtra common.Name
 		if evm.ForkID >= params.ForkID4 {

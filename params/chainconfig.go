@@ -87,10 +87,10 @@ type DposConfig struct {
 var DefaultChainconfig = &ChainConfig{
 	BootNodes: []string{},
 	ChainID:   big.NewInt(1),
-	ChainName: "oex",
+	ChainName: "oexchain",
 	ChainURL:  "https://oexproject.com",
 	AccountNameCfg: &NameConfig{
-		Level:         1,
+		Level:         2,
 		AllLength:     31,
 		MainMinLength: 7,
 		MainMaxLength: 16,

@@ -233,6 +233,26 @@ const (
 )
 
 const (
+	// 0xe0 range new add for ext assets
+	EXTASSETID1 OpCode = 0xe0 + iota
+	EXTVALUE1
+	EXTASSETID2
+	EXTVALUE2
+	EXTASSETID3
+	EXTVALUE3
+	EXTASSETID4
+	EXTVALUE4
+	EXTASSETID5
+	EXTVALUE5
+	EXTASSETID6
+	EXTVALUE6
+	EXTASSETID7
+	EXTVALUE7
+	EXTASSETID8
+	EXTVALUE8
+)
+
+const (
 	// 0xf0 range - closures
 	CREATE OpCode = 0xf0 + iota
 	CALL
@@ -307,6 +327,8 @@ var opCodeToString = map[OpCode]string{
 	DIFFICULTY:  "DIFFICULTY",
 	GASLIMIT:    "GASLIMIT",
 	CALLASSETID: "CALLASSETID",
+	EXTASSETID1: "EXTASSETID1",
+	EXTVALUE1:   "EXTVALUE1",
 
 	// 0x50 range - 'storage' and execution
 	POP: "POP",
@@ -504,6 +526,8 @@ var stringToOp = map[string]OpCode{
 	"DIFFICULTY":     DIFFICULTY,
 	"GASLIMIT":       GASLIMIT,
 	"CALLASSETID":    CALLASSETID,
+	"EXTASSETID1":    EXTASSETID1,
+	"EXTVALUE1":      EXTVALUE1,
 	"POP":            POP,
 	"MLOAD":          MLOAD,
 	"MSTORE":         MSTORE,
