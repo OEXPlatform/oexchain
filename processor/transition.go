@@ -200,6 +200,14 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 					}
 				}
 			}
+			if codeSize, err := st.account.GetCodeSize(st.action.Recipient()); codeSize != 0 && err == nil {
+				var cantransfer bool
+				st.gas, cantransfer = evm.CanTransferContractAsset(sender, st.gas, st.action.AssetID(), st.action.Recipient())
+				if !cantransfer {
+					vmerr = errors.New("not allowed to transfer to this contract")
+					break
+				}
+			}
 		}
 		if len(fromExtra) == 0 {
 			internalLogs, err := st.account.Process(&types.AccountManagerContext{
