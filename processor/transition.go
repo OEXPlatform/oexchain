@@ -149,6 +149,10 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 	case actionType == types.CallContract:
 		ret, st.gas, vmerr = evm.Call(sender, st.action, st.gas)
 	case actionType == types.MultiAssetCall:
+		if st.action.AssetID() != 0 || st.action.Value().Cmp(big.NewInt(0)) != 0 {
+			vmerr = errors.New("assetid and value can not be zero")
+			break
+		}
 		var acct MultiAssetCallAction
 		err := rlp.DecodeBytes(st.action.Data(), &acct)
 		if err != nil {
@@ -194,6 +198,14 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 					if cantransfer {
 						fromExtra = asset.GetContract()
 					}
+				}
+			}
+			if codeSize, err := st.account.GetCodeSize(st.action.Recipient()); codeSize != 0 && err == nil {
+				var cantransfer bool
+				st.gas, cantransfer = evm.CanTransferContractAsset(sender, st.gas, st.action.AssetID(), st.action.Recipient())
+				if !cantransfer {
+					vmerr = errors.New("not allowed to transfer to this contract")
+					break
 				}
 			}
 		}

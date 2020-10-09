@@ -567,6 +567,12 @@ func NewFrontierInstructionSet() [256]operation {
 			validateStack: makeStackFunc(0, 1),
 			valid:         true,
 		},
+		EXTCOUNT: {
+			execute:       opExtCount,
+			gasCost:       constGasFunc(GasQuickStep),
+			validateStack: makeStackFunc(0, 1),
+			valid:         true,
+		},
 		EXTASSETID1: {
 			execute:       makeExtAssetID(1),
 			gasCost:       constGasFunc(GasQuickStep),

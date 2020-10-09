@@ -766,23 +766,8 @@ func opCallAssetId(pc *uint64, evm *EVM, contract *Contract, memory *Memory, sta
 	return nil, nil
 }
 
-func opExtAssetId1(pc *uint64, evm *EVM, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
-	fmt.Println("extassetids ", evm.ExAssetIDs)
-	if len(evm.ExAssetIDs) < 1 {
-		stack.push(evm.interpreter.intPool.get().SetUint64(0))
-	} else {
-		stack.push(evm.interpreter.intPool.get().SetUint64(evm.ExAssetIDs[0]))
-	}
-	return nil, nil
-}
-
-func opExtValue1(pc *uint64, evm *EVM, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
-	fmt.Println("extvalues ", evm.ExValues)
-	if len(evm.ExValues) < 1 {
-		stack.push(evm.interpreter.intPool.get().Set(big.NewInt(0)))
-	} else {
-		stack.push(evm.interpreter.intPool.get().Set(evm.ExValues[0]))
-	}
+func opExtCount(pc *uint64, evm *EVM, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
+	stack.push(evm.interpreter.intPool.get().SetUint64(uint64(len(evm.ExAssetIDs))))
 	return nil, nil
 }
 
