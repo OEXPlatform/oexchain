@@ -1005,3 +1005,217 @@ type UInt64Slice []uint64
 func (s UInt64Slice) Len() int           { return len(s) }
 func (s UInt64Slice) Less(i, j int) bool { return s[i] < s[j] }
 func (s UInt64Slice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+
+//IsValidateCandidate2 current candidate
+func (dpos *Dpos) IsValidateCandidate2(chain consensus.IChainReader, parent *types.Header, timestamp uint64, candidate string, pubkeys [][]byte, state *state.StateDB, force bool) (string, error) {
+	if timestamp%dpos.BlockInterval() != 0 {
+		return "", errInvalidMintBlockTime
+	}
+
+	sys := NewSystem(state, dpos.config)
+	pepoch := dpos.config.epoch(parent.Time.Uint64())
+	gstate, err := sys.GetState(pepoch)
+	if err != nil {
+		return "", err
+	}
+
+	if gstate.TakeOver {
+		return "", ErrSystemTakeOver
+	} else if parent.Number.Uint64() > 0 && (dpos.CalcProposedIrreversible(chain, parent, true) == 0 || timestamp-parent.Time.Uint64() > 2*dpos.config.mepochInterval()) {
+		if parent.Number.Uint64() >= dpos.config.CandidateScheduleSize*dpos.config.BlockFrequency {
+			return "", ErrTooMuchRreversible
+		}
+	}
+
+	pstate, err := sys.GetState(gstate.PreEpoch)
+	if err != nil {
+		return "", err
+	}
+
+	tname := ""
+	offset := dpos.config.getoffset(timestamp)
+	if sys.config.epoch(timestamp) != sys.config.epoch(parent.Time.Uint64()) {
+		pstate = gstate
+	}
+	if len(pstate.ActivatedCandidateSchedule) == 0 {
+		n := sys.config.BackupScheduleSize + sys.config.CandidateScheduleSize
+		candidateInfoArray, err := sys.GetCandidates(pstate.Epoch)
+		if err != nil {
+			return "", err
+		}
+		activatedCandidateSchedule := []string{}
+		activatedTotalQuantity := big.NewInt(0)
+		sort.Sort(candidateInfoArray)
+		if pstate.Dpos {
+			for _, candidateInfo := range candidateInfoArray {
+				if !candidateInfo.invalid() {
+					if candidateInfo.Quantity.Sign() == 0 || strings.Compare(candidateInfo.Name, sys.config.SystemName) == 0 {
+						continue
+					}
+					if uint64(len(activatedCandidateSchedule)) >= n {
+						break
+					}
+					activatedCandidateSchedule = append(activatedCandidateSchedule, candidateInfo.Name)
+					activatedTotalQuantity = new(big.Int).Add(activatedTotalQuantity, candidateInfo.TotalQuantity)
+				}
+			}
+		} else {
+			tstate := &GlobalState{
+				Epoch:                       math.MaxUint64,
+				PreEpoch:                    math.MaxUint64,
+				ActivatedTotalQuantity:      big.NewInt(0),
+				TotalQuantity:               big.NewInt(0),
+				UsingCandidateIndexSchedule: []uint64{},
+				BadCandidateIndexSchedule:   []uint64{},
+				Number:                      0,
+			}
+			for _, candidateInfo := range candidateInfoArray {
+				if !candidateInfo.invalid() {
+					if candidateInfo.Quantity.Sign() != 0 && strings.Compare(candidateInfo.Name, sys.config.SystemName) != 0 {
+						tstate.Number++
+						tstate.TotalQuantity = new(big.Int).Add(tstate.TotalQuantity, candidateInfo.TotalQuantity)
+						if uint64(len(tstate.ActivatedCandidateSchedule)) < n {
+							tstate.ActivatedCandidateSchedule = append(tstate.ActivatedCandidateSchedule, candidateInfo.Name)
+							tstate.ActivatedTotalQuantity = new(big.Int).Add(tstate.ActivatedTotalQuantity, candidateInfo.TotalQuantity)
+						}
+						continue
+					}
+					if uint64(len(activatedCandidateSchedule)) < n {
+						activatedCandidateSchedule = append(activatedCandidateSchedule, candidateInfo.Name)
+						activatedTotalQuantity = new(big.Int).Add(activatedTotalQuantity, candidateInfo.TotalQuantity)
+					}
+				}
+			}
+
+			if tstate.TotalQuantity.Cmp(sys.config.ActivatedMinQuantity) >= 0 &&
+				tstate.Number >= n &&
+				tstate.Number >= sys.config.ActivatedMinCandidate {
+				pstate.Dpos = true
+				pstate.ActivatedTotalQuantity = tstate.ActivatedTotalQuantity
+				pstate.ActivatedCandidateSchedule = tstate.ActivatedCandidateSchedule
+			} else {
+				if init := len(activatedCandidateSchedule); init > 0 {
+					index := 0
+					for uint64(len(activatedCandidateSchedule)) < sys.config.CandidateScheduleSize {
+						activatedCandidateSchedule = append(activatedCandidateSchedule, activatedCandidateSchedule[index%init])
+						index++
+					}
+				}
+			}
+		}
+		pstate.ActivatedCandidateSchedule = activatedCandidateSchedule
+		pstate.ActivatedTotalQuantity = activatedTotalQuantity
+	}
+	if len(pstate.UsingCandidateIndexSchedule) == 0 {
+		usingCandidateIndexSchedule := []uint64{}
+		for index := range pstate.ActivatedCandidateSchedule {
+			if uint64(index) >= sys.config.CandidateScheduleSize {
+				break
+			}
+			usingCandidateIndexSchedule = append(usingCandidateIndexSchedule, uint64(index))
+		}
+		for index, offset := range pstate.BadCandidateIndexSchedule {
+			usingCandidateIndexSchedule[int(offset)] = sys.config.CandidateScheduleSize + uint64(index)
+		}
+		pstate.UsingCandidateIndexSchedule = usingCandidateIndexSchedule
+	}
+	if sys.config.epoch(timestamp) == pepoch {
+		candidates := map[uint64]*CandidateInfo{}
+		mcandidates := map[uint64]*CandidateInfo{}
+		mepoch := (parent.Time.Uint64() - sys.config.epochTimeStamp(pepoch)) / sys.config.mepochInterval() / sys.config.minMEpoch()
+		for ttimestamp := parent.Time.Uint64() + sys.config.blockInterval(); ttimestamp < timestamp; ttimestamp += sys.config.blockInterval() {
+			tmepoch := (ttimestamp - dpos.config.epochTimeStamp(pepoch)) / dpos.config.mepochInterval() / dpos.config.minMEpoch()
+			if mepoch != tmepoch {
+				for offset, cindex := range pstate.UsingCandidateIndexSchedule {
+					if uint64(cindex) == InvalidIndex {
+						continue
+					}
+					tcandidate, ok := candidates[uint64(offset)]
+					if !ok {
+						pcandidate, err := sys.GetCandidate(gstate.Epoch, pstate.ActivatedCandidateSchedule[cindex])
+						if err != nil {
+							return "", err
+						}
+						tcandidate = pcandidate
+					}
+					ptcandidate, ok := mcandidates[uint64(offset)]
+					if !ok {
+						pcandidate, err := sys.GetActivatedCandidate(uint64(offset))
+						if err != nil {
+							return "", err
+						}
+						ptcandidate = pcandidate
+					}
+
+					if ptcandidate != nil && ptcandidate.Epoch == pepoch {
+						if strings.Compare(ptcandidate.Name, tcandidate.Name) != 0 {
+							panic(fmt.Sprintf("not reached %s != %s", tcandidate.Name, ptcandidate.Name))
+						}
+						scnt := tcandidate.Counter - ptcandidate.Counter
+						acnt := tcandidate.ActualCounter - ptcandidate.ActualCounter
+						log.Debug("replace check...", "num", parent.Number.Uint64()+1, "epoch", pepoch, "mepoch", mepoch, "index", offset, "candidate", tcandidate.Name, "scnt", scnt, "acnt", acnt)
+						if scnt > acnt+scnt/2 {
+							if uint64(len(pstate.BadCandidateIndexSchedule))+dpos.config.CandidateScheduleSize < uint64(len(pstate.ActivatedCandidateSchedule)) {
+								rindex := uint64(len(pstate.BadCandidateIndexSchedule)) + dpos.config.CandidateScheduleSize
+								rname := pstate.ActivatedCandidateSchedule[rindex]
+								log.Info("replace checked...", "num", parent.Number.Uint64()+1, "epoch", pepoch, "mepoch", mepoch, "index", offset, "candidate", tcandidate.Name, "==>rcandidate", rname, "scnt", scnt, "acnt", acnt)
+
+								pstate.BadCandidateIndexSchedule = append(pstate.BadCandidateIndexSchedule, uint64(offset))
+								pstate.UsingCandidateIndexSchedule[uint64(offset)] = rindex
+								rcandidate, err := sys.GetCandidate(gstate.Epoch, rname)
+								if err != nil {
+									return "", err
+								}
+								tcandidate = rcandidate
+							} else {
+								log.Info("replace checked...", "num", parent.Number.Uint64()+1, "epoch", pepoch, "mepoch", mepoch, "index", offset, "candidate", tcandidate.Name, "==>rcandidate", "****", "scnt", scnt, "acnt", acnt)
+								pstate.UsingCandidateIndexSchedule[uint64(offset)] = InvalidIndex
+							}
+						}
+					}
+					log.Debug("replace start...", "num", parent.Number.Uint64()+1, "epoch", pepoch, "mepoch", mepoch, "index", offset, "candiate", tcandidate.Name, "counter", tcandidate.Counter, "actual", tcandidate.ActualCounter)
+					mcandidates[uint64(offset)] = tcandidate
+				}
+				log.Debug("replace after...", "num", parent.Number.Uint64()+1, "epoch", pepoch, "mepoch", mepoch, "usingCandidateIndexSchedule", fmt.Sprintf("%v", gstate.UsingCandidateIndexSchedule))
+				mepoch = tmepoch
+			}
+
+			coffset := dpos.config.getoffset(timestamp)
+			name := sys.usingCandiate(pstate, coffset)
+			if name == "" {
+				continue
+			}
+			candidate, ok := candidates[coffset]
+			if !ok {
+				pcandidate, err := sys.GetCandidate(gstate.Epoch, name)
+				if err != nil {
+					return "", err
+				}
+				candidates[coffset] = pcandidate
+				candidate = pcandidate
+			}
+			candidate.Counter++
+		}
+	}
+	tname = sys.usingCandiate(pstate, offset)
+
+	if tname == "" {
+		return "", fmt.Errorf("%v %v, except %v %v(%v) index %v (%v epoch) ", errInvalidBlockCandidate, candidate, tname, pstate.ActivatedCandidateSchedule, pstate.UsingCandidateIndexSchedule, offset, pstate.Epoch)
+	}
+
+	if strings.HasPrefix(candidate, tname) == false && strings.Contains(candidate, fmt.Sprintf(",%s", tname)) == false {
+		return "", fmt.Errorf("%v %v, except %v %v(%v) index %v (%v epoch) ", errInvalidBlockCandidate, candidate, tname, pstate.ActivatedCandidateSchedule, pstate.UsingCandidateIndexSchedule, offset, pstate.Epoch)
+	}
+
+	has := false
+	for _, pubkey := range pubkeys {
+		if sys.CanMine(tname, pubkey) == nil {
+			has = true
+			break
+		}
+	}
+	if !has {
+		return "", ErrIllegalCandidatePubKey
+	}
+	return tname, nil
+}

@@ -171,6 +171,11 @@ func (worker *Worker) mintLoop() {
 func (worker *Worker) mintBlock(timestamp int64, quit chan struct{}) {
 	bstart := time.Now()
 	log.Debug("mint block", "timestamp", timestamp)
+
+	oldcoinbase := worker.coinbase
+	defer func() {
+		worker.coinbase = oldcoinbase
+	}()
 	for {
 		select {
 		case <-worker.quit:
@@ -189,20 +194,40 @@ func (worker *Worker) mintBlock(timestamp int64, quit chan struct{}) {
 		}
 		theader := &types.Header{}
 		worker.FillForkID(theader, state)
-		if err := cdpos.IsValidateCandidate(worker, header, uint64(timestamp), worker.coinbase, worker.pubKeys, state, worker.force); err != nil {
-			switch err {
-			case dpos.ErrSystemTakeOver:
-				fallthrough
-			case dpos.ErrTooMuchRreversible:
-				fallthrough
-			case dpos.ErrIllegalCandidateName:
-				fallthrough
-			case dpos.ErrIllegalCandidatePubKey:
-				log.Warn("failed to mint the block", "timestamp", timestamp, "err", err, "candidate", worker.coinbase)
-			default:
-				log.Debug("failed to mint the block", "timestamp", timestamp, "err", err)
+		if strings.Contains(worker.coinbase, ",") {
+			name, err := cdpos.IsValidateCandidate2(worker, header, uint64(timestamp), worker.coinbase, worker.pubKeys, state, worker.force)
+			if err != nil {
+				switch err {
+				case dpos.ErrSystemTakeOver:
+					fallthrough
+				case dpos.ErrTooMuchRreversible:
+					fallthrough
+				case dpos.ErrIllegalCandidateName:
+					fallthrough
+				case dpos.ErrIllegalCandidatePubKey:
+					log.Warn("failed to mint the block", "timestamp", timestamp, "err", err, "candidate", worker.coinbase)
+				default:
+					log.Debug("failed to mint the block", "timestamp", timestamp, "err", err)
+				}
+				return
 			}
-			return
+			worker.coinbase = name
+		} else {
+			if err := cdpos.IsValidateCandidate(worker, header, uint64(timestamp), worker.coinbase, worker.pubKeys, state, worker.force); err != nil {
+				switch err {
+				case dpos.ErrSystemTakeOver:
+					fallthrough
+				case dpos.ErrTooMuchRreversible:
+					fallthrough
+				case dpos.ErrIllegalCandidateName:
+					fallthrough
+				case dpos.ErrIllegalCandidatePubKey:
+					log.Warn("failed to mint the block", "timestamp", timestamp, "err", err, "candidate", worker.coinbase)
+				default:
+					log.Debug("failed to mint the block", "timestamp", timestamp, "err", err)
+				}
+				return
+			}
 		}
 		block, err := worker.commitNewWork(timestamp, header, quit)
 		if err == nil {
@@ -244,15 +269,19 @@ func (worker *Worker) setCoinbase(name string, privKeys []*ecdsa.PrivateKey) {
 	worker.coinbase = name
 	worker.privKeys = privKeys
 	worker.pubKeys = nil
-	for index, privkey := range privKeys {
-		pubkey := crypto.FromECDSAPub(&privkey.PublicKey)
-		if err := sys.CanMine(name, pubkey); err == nil {
-			log.Info("setCoinbase[valid]", "coinbase", name, fmt.Sprintf("pubKey_%03d", index), common.BytesToPubKey(pubkey).String())
-		} else {
-			log.Warn("setCoinbase[invalid]", "coinbase", name, fmt.Sprintf("pubKey_%03d", index), common.BytesToPubKey(pubkey).String(), "detail", err)
+	coinbases := strings.Split(name, ",")
+	for _, coinbase := range coinbases {
+		for index, privkey := range privKeys {
+			pubkey := crypto.FromECDSAPub(&privkey.PublicKey)
+			if err := sys.CanMine(coinbase, pubkey); err == nil {
+				log.Info("setCoinbase[valid]", "coinbase", coinbase, fmt.Sprintf("pubKey_%03d", index), common.BytesToPubKey(pubkey).String())
+			} else {
+				log.Warn("setCoinbase[invalid]", "coinbase", coinbase, fmt.Sprintf("pubKey_%03d", index), common.BytesToPubKey(pubkey).String(), "detail", err)
+			}
+			worker.pubKeys = append(worker.pubKeys, pubkey)
 		}
-		worker.pubKeys = append(worker.pubKeys, pubkey)
 	}
+
 }
 
 func (worker *Worker) setExtra(extra []byte) {
