@@ -4,8 +4,8 @@
 			"fnode://86e4077ce3d62440c5e1f69b208c0f79c48f950678852d16b6ae2f2c686f7c3591b68457f3c602e55f70064025f9aec5ffc563fc994e6e59e30e14e796dbe133@bootNode.oexchain.io:9090"
 		],
 		"chainId": 1,
-		"chainName": "oexchain",
-		"chainUrl": "https://oexchain.com",
+		"chainName": "oex",
+		"chainUrl": "https://oexchain.io",
 		"accountParams": {
 			"level": 3,
 			"alllength":31,
