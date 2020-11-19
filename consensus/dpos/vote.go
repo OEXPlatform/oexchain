@@ -320,6 +320,10 @@ func (sys *System) RefundCandidate(epoch uint64, candidate string, number uint64
 		Action: action.NewRPCAction(0),
 	})
 
+	if err := sys.WithdrawCandidate(epoch, candidate, number, fid); err != nil {
+		return err
+	}
+
 	// voters, err := sys.GetVoters(epoch, prod.Name)
 	// if err != nil {
 	// 	return err
@@ -363,6 +367,10 @@ func (sys *System) WithdrawCandidate(epoch uint64, candidate string, number uint
 	}
 
 	canwithdraw := new(big.Int).Sub(prod.Reward, withdrawed)
+	if canwithdraw.Cmp(big.NewInt(0)) == 0 {
+		return nil
+	}
+
 	action, err := sys.AddBalance(prod.Name, canwithdraw, fid)
 	if err != nil {
 		return err
