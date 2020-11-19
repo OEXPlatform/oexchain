@@ -140,6 +140,15 @@ func (api *API) Candidate(epoch uint64, name string) (interface{}, error) {
 	return sys.GetCandidate(epoch, name)
 }
 
+// CandidateWithdrawed get candidate info
+func (api *API) CandidateWithdrawed(name string) (interface{}, error) {
+	sys, err := api.system()
+	if err != nil {
+		return nil, err
+	}
+	return sys.GetWithdrawed(name)
+}
+
 // VotersByCandidate get voters info of candidate
 func (api *API) VotersByCandidate(epoch uint64, candidate string, detail bool) (interface{}, error) {
 	if epoch == 0 {

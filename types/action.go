@@ -87,6 +87,8 @@ const (
 
 	// UpdateCandidatePubKey repesents update candidate action.
 	UpdateCandidatePubKey
+	// WithdrawCandidate repesents candidate action.
+	WithdrawCandidate
 )
 
 const (
@@ -268,6 +270,8 @@ func (a *Action) Check(fid uint64, conf *params.ChainConfig) error {
 	case VoteCandidate:
 		fallthrough
 	case RefundCandidate:
+		fallthrough
+	case WithdrawCandidate:
 		fallthrough
 	case KickedCandidate:
 		fallthrough

@@ -1,12 +1,11 @@
 {
 	"config": {
-		"bootnodes": ["fnode://a85ccab0374c60ddea0a63b521ae3f8475100ff4e116090d6798a8618ceea193f5b7deffc14627b2f61bc374336983f6a6c6ed979478590d49906e8ce6041a18@boot.m.ft.im:30000",
-			"fnode://9d18e8f043a1d2c06d87506cd968410a24db7cbca3c152e75a9e3850b9b737ec85da66c271ac9f703c61e5367d8922d39e145313ff7cb379d9c8d682a15f60dc@boot2.m.ft.im:30000",
-			"fnode://6629defca0f82ede9cb30d40a2ec6e8c56f51080ad49e9099eb960bed63829ee259bdec6c357d2b43ebdb621b1a54da268d35088bd9db80245936a58c299e1e6@boot3.m.ft.im:30000"
+		"bootnodes": [
+			"fnode://86e4077ce3d62440c5e1f69b208c0f79c48f950678852d16b6ae2f2c686f7c3591b68457f3c602e55f70064025f9aec5ffc563fc994e6e59e30e14e796dbe133@bootNode.oexchain.io:9090"
 		],
 		"chainId": 1,
 		"chainName": "oex",
-		"chainUrl": "https://oexproject.com",
+		"chainUrl": "https://oexchain.io",
 		"accountParams": {
 			"level": 3,
 			"alllength":31,
@@ -34,8 +33,8 @@
 		"dposParams": {
 			"maxURLLen": 512,
 			"unitStake": 1,
-			"candidateAvailableMinQuantity": 200000,
-			"candidateMinQuantity": 100000,
+			"candidateAvailableMinQuantity": 300000,
+			"candidateMinQuantity": 200000,
 			"voterMinQuantity": 1,
 			"activatedMinCandidate": 28,
 			"activatedMinQuantity": 210000000,
@@ -59,7 +58,7 @@
 		"feeName": "oexchain.fee",
 		"systemToken": "oextoken"
 	},
-	"timestamp": 1594569600000,
+	"timestamp": 1601136000000,
 	"gasLimit": 30000000,
 	"difficulty": 1,
 	"allocAccounts": [{
@@ -93,5 +92,5 @@
 		"owner": "oexchain.founder",
 		"upperLimit": 1000000000000000000000000000
 	}],
-	"remark":"科技捍卫权利"
+	"remark":"Science and technology defend rights."
 }

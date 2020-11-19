@@ -320,6 +320,10 @@ func (sys *System) RefundCandidate(epoch uint64, candidate string, number uint64
 		Action: action.NewRPCAction(0),
 	})
 
+	if err := sys.WithdrawCandidate(epoch, candidate, number, fid); err != nil {
+		return err
+	}
+
 	// voters, err := sys.GetVoters(epoch, prod.Name)
 	// if err != nil {
 	// 	return err
@@ -344,6 +348,38 @@ func (sys *System) RefundCandidate(epoch uint64, candidate string, number uint64
 	// 	return err
 	// }
 	return nil
+}
+
+// WithdrawCandidate  withdraw a candidate
+func (sys *System) WithdrawCandidate(epoch uint64, candidate string, number uint64, fid uint64) error {
+	// name validity
+	prod, err := sys.GetCandidate(epoch, candidate)
+	if err != nil {
+		return err
+	}
+	if prod == nil {
+		return fmt.Errorf("invalid candidate %v(not exist)", candidate)
+	}
+
+	withdrawed, err := sys.GetWithdrawed(prod.Name)
+	if err != nil {
+		return err
+	}
+
+	canwithdraw := new(big.Int).Sub(prod.Reward, withdrawed)
+	if canwithdraw.Cmp(big.NewInt(0)) == 0 {
+		return nil
+	}
+
+	action, err := sys.AddBalance(prod.Name, canwithdraw, fid)
+	if err != nil {
+		return err
+	}
+	sys.internalActions = append(sys.internalActions, &types.InternalAction{
+		Action: action.NewRPCAction(0),
+	})
+
+	return sys.SetWithdrawed(prod.Name, prod.Reward)
 }
 
 // VoteCandidate vote a candidate

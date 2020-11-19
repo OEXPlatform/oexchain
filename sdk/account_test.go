@@ -87,7 +87,7 @@ func TestCreateAccount(t *testing.T) {
 func TestUpdateAccount(t *testing.T) {
 	Convey("UpdateAccount", t, func() {
 		act := NewAccount(api, common.StrToName(name), priv, chainCfg.SysTokenID, math.MaxUint64, true, chainCfg.ChainID)
-		hash, err := act.UpdateAccount(common.StrToName(chainCfg.AccountName), big.NewInt(0), chainCfg.SysTokenID, gas, &accountmanager.UpdataAccountAction{
+		hash, err := act.UpdateAccount(common.StrToName(chainCfg.AccountName), big.NewInt(0), chainCfg.SysTokenID, gas, &accountmanager.UpdateAccountAction{
 			Founder: common.StrToName(name),
 		})
 		So(err, ShouldBeNil)
@@ -229,6 +229,18 @@ func TestRefundCandidate(t *testing.T) {
 		So(hash, ShouldNotBeNil)
 	})
 }
+
+func TestWithdrawCandidate(t *testing.T) {
+	Convey("WithdrawCandidate", t, func() {
+		// WithdrawCandidate
+		act := NewAccount(api, common.StrToName("oexchain.founder"), priv, chainCfg.SysTokenID, math.MaxUint64, true, chainCfg.ChainID)
+		hash, err := act.WithdrawCandidate(common.StrToName(chainCfg.DposName), big.NewInt(0), chainCfg.SysTokenID, gas)
+		So(err, ShouldBeNil)
+		So(hash, ShouldNotBeNil)
+		fmt.Println(hash.String())
+	})
+}
+
 func TestVoteCandidate(t *testing.T) {
 	SkipConvey("VoteCandidate", t, func() {
 		// VoteCandidate

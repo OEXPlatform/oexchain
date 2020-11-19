@@ -140,6 +140,14 @@ func (acc *Account) chekRefundProdoucer(action *types.Action) (func() error, err
 	return function, nil
 }
 
+func (acc *Account) chekWithdrawProdoucer(action *types.Action) (func() error, error) {
+	// TODO
+	function := func() error {
+		return nil
+	}
+	return function, nil
+}
+
 func (acc *Account) chekVoteProdoucer(action *types.Action) (func() error, error) {
 	// TODO
 	function := func() error {

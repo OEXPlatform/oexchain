@@ -125,7 +125,7 @@ func (acc *Account) CreateAccount(to common.Name, value *big.Int, id uint64, gas
 }
 
 // UpdateAccount update accout
-func (acc *Account) UpdateAccount(to common.Name, value *big.Int, id uint64, gas uint64, newacct *accountmanager.UpdataAccountAction) (hash common.Hash, err error) {
+func (acc *Account) UpdateAccount(to common.Name, value *big.Int, id uint64, gas uint64, newacct *accountmanager.UpdateAccountAction) (hash common.Hash, err error) {
 	nonce := acc.nonce
 	if nonce == math.MaxUint64 {
 		nonce, err = acc.api.AccountNonce(acc.name.String())
@@ -706,6 +706,56 @@ func (acc *Account) RefundCandidate(to common.Name, value *big.Int, id uint64, g
 	if checked {
 		// before
 		checkedfunc, err = acc.chekRefundProdoucer(action)
+		if err != nil {
+			return
+		}
+	}
+	hash, err = acc.api.SendRawTransaction(rawtx)
+	if err != nil {
+		return
+	}
+	if checked {
+		// after
+		err = acc.utilReceipt(hash, timeout)
+		if err != nil {
+			return
+		}
+		err = checkedfunc()
+		if err != nil {
+			return
+		}
+	}
+
+	if acc.nonce != math.MaxUint64 {
+		acc.nonce++
+	}
+	return
+}
+
+// WithdrawCandidate refund cadiate
+func (acc *Account) WithdrawCandidate(to common.Name, value *big.Int, id uint64, gas uint64) (hash common.Hash, err error) {
+	nonce := acc.nonce
+	if nonce == math.MaxUint64 {
+		nonce, err = acc.api.AccountNonce(acc.name.String())
+		if err != nil {
+			return
+		}
+	}
+
+	action := types.NewAction(types.WithdrawCandidate, acc.name, to, nonce, id, gas, value, nil, nil)
+	tx := types.NewTransaction(acc.feeid, big.NewInt(1e10), []*types.Action{action}...)
+	key := types.MakeKeyPair(acc.priv, []uint64{0})
+
+	err = types.SignActionWithMultiKey(action, tx, types.NewSigner(acc.chainID), 0, []*types.KeyPair{key})
+	if err != nil {
+		panic(err)
+	}
+	rawtx, _ := rlp.EncodeToBytes(tx)
+	checked := acc.checked || acc.nonce == math.MaxUint64
+	var checkedfunc func() error
+	if checked {
+		// before
+		checkedfunc, err = acc.chekWithdrawProdoucer(action)
 		if err != nil {
 			return
 		}
