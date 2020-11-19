@@ -41,6 +41,9 @@ type IDB interface {
 	SetAvailableQuantity(uint64, string, *big.Int) error
 	GetAvailableQuantity(uint64, string) (*big.Int, error)
 
+	SetWithdrawed(string, *big.Int) error
+	GetWithdrawed(string) (*big.Int, error)
+
 	SetVoter(*VoterInfo) error
 	GetVoter(uint64, string, string) (*VoterInfo, error)
 	GetVotersByVoter(uint64, string) ([]*VoterInfo, error)
@@ -56,6 +59,7 @@ type IDB interface {
 
 	Undelegate(string, *big.Int) (*types.Action, error)
 	IncAsset2Acct(string, string, *big.Int, uint64) (*types.Action, error)
+	AddBalance(to string, amount *big.Int, forkID uint64) (*types.Action, error)
 	GetBalanceByTime(name string, timestamp uint64) (*big.Int, error)
 	GetCandidateInfoByTime(epoch uint64, name string, timestamp uint64) (*CandidateInfo, error)
 

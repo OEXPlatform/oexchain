@@ -37,6 +37,7 @@ type IDatabase interface {
 
 	Undelegate(string, *big.Int) (*types.Action, error)
 	IncAsset2Acct(string, string, *big.Int, uint64) (*types.Action, error)
+	AddBalance(to string, amount *big.Int, forkID uint64) (*types.Action, error)
 	GetBalanceByTime(name string, timestamp uint64) (*big.Int, error)
 	IsValidSign(name string, pubkey []byte) error
 	GetSnapshot(key string, timestamp uint64) ([]byte, error)
@@ -45,6 +46,8 @@ type IDatabase interface {
 var (
 	// CandidateKeyPrefix candidateInfo
 	CandidateKeyPrefix = "p"
+	// CandidateWithdrawedPrefix candidateInfo
+	CandidateWithdrawedPrefix = "wd"
 	// CandidateHead all candidate key
 	CandidateHead = "s"
 	// ActivatedCandidateKeyPrefix candidateInfo
@@ -309,6 +312,24 @@ func (db *LDB) GetAvailableQuantity(epoch uint64, voter string) (*big.Int, error
 		return nil, nil
 	}
 	return head.Quantity, nil
+}
+
+// SetWithdrawed set quantity
+func (db *LDB) SetWithdrawed(candidate string, quantity *big.Int) error {
+	key := strings.Join([]string{CandidateWithdrawedPrefix, candidate}, Separator)
+	return db.Put(key, quantity.Bytes())
+}
+
+// GetWithdrawed get quantity
+func (db *LDB) GetWithdrawed(candidate string) (*big.Int, error) {
+	key := strings.Join([]string{CandidateWithdrawedPrefix, candidate}, Separator)
+	if val, err := db.Get(key); err != nil {
+		return nil, err
+	} else if val == nil {
+		return big.NewInt(0), nil
+	} else {
+		return new(big.Int).SetBytes(val), nil
+	}
 }
 
 // SetVoter update voter info

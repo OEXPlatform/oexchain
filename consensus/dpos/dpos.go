@@ -93,6 +93,16 @@ func (s *stateDB) IncAsset2Acct(from string, to string, amount *big.Int, forkID 
 	}
 	return action, accountDB.IncAsset2Acct(common.StrToName(from), common.StrToName(to), s.assetid, amount, forkID)
 }
+
+func (s *stateDB) AddBalance(to string, amount *big.Int, forkID uint64) (*types.Action, error) {
+	action := types.NewAction(types.IncreaseAsset, common.StrToName(s.name), common.StrToName(to), 0, s.assetid, 0, amount, nil, nil)
+	accountDB, err := accountmanager.NewAccountManager(s.state)
+	if err != nil {
+		return action, err
+	}
+	return action, accountDB.AddAccountBalanceByID(common.StrToName(to), s.assetid, amount)
+}
+
 func (s *stateDB) IsValidSign(name string, pubkey []byte) error {
 	accountDB, err := accountmanager.NewAccountManager(s.state)
 	if err != nil {

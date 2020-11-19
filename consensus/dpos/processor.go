@@ -142,6 +142,11 @@ func (dpos *Dpos) processAction(fid uint64, number uint64, chainCfg *params.Chai
 		if err != nil {
 			return nil, err
 		}
+	case types.WithdrawCandidate:
+		err := sys.WithdrawCandidate(epoch, action.Sender().String(), number, fid)
+		if err != nil {
+			return nil, err
+		}
 	case types.VoteCandidate:
 		arg := &VoteCandidate{}
 		if err := rlp.DecodeBytes(action.Data(), &arg); err != nil {
