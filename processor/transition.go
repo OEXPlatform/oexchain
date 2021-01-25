@@ -345,6 +345,8 @@ func (st *StateTransition) distributeGas(intrinsicGas uint64) {
 
 	case types.CreateContract:
 		fallthrough
+	case types.MultiAssetCall:
+		fallthrough
 	case types.CallContract:
 		st.distributeToContract(st.action.Recipient(), intrinsicGas)
 		return
