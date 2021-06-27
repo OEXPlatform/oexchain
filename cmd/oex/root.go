@@ -19,6 +19,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/oexplatform/oexchain/snapshot"
 	"os"
 	"os/signal"
 	"syscall"
@@ -118,6 +119,7 @@ func makeNode() (*node.Node, error) {
 	}
 	// p2p used to generate MagicNetID
 	ftCfgInstance.NodeCfg.P2PConfig.GenesisHash = block.Hash()
+	snapshot.SnapshotInterval = genesis.Config.SnapshotInterval
 	return node.New(ftCfgInstance.NodeCfg)
 }
 
